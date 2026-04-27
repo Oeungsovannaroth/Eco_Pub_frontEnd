@@ -5,6 +5,7 @@ import Loader from "../components/Loader";
 import SearchBar from "../components/SearchBar";
 import LedBar from "../components/LedBar";
 import { useCart } from "../context/CartContext";
+import Swal from "sweetalert2";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap');
@@ -121,25 +122,28 @@ function Home() {
 
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter((item) =>
-      item.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      item.name?.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [menuItems, searchTerm]);
 
   // Handle Add to Cart with Login Check
   const handleAddToCart = (item) => {
     if (!isLoggedIn) {
-      // Optional: You can show a toast later, but for now we redirect
-      navigate("/login", { 
-        state: { 
-          message: "Please login to add items to your cart 🍺" 
-        } 
+      navigate("/login", {
+        state: { message: "Please login to add items to your cart 🍺" },
       });
       return;
     }
 
     addToCart(item);
-    // Optional success feedback
-    alert(`${item.name} added to cart!`);
+
+    Swal.fire({
+      title: "Added!",
+      text: `${item.name} has been added to your cart 🛒`,
+      icon: "success",
+      timer: 1500,
+      showConfirmButton: false,
+    });
   };
 
   return (
@@ -163,7 +167,8 @@ function Home() {
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage: "url('https://image2url.com/r2/default/images/1775188296928-f2dcefde-6342-4449-91ff-bb80de2d6004.jpg')",
+                backgroundImage:
+                  "url('https://image2url.com/r2/default/images/1775188296928-f2dcefde-6342-4449-91ff-bb80de2d6004.jpg')",
               }}
             />
           )}
@@ -174,7 +179,9 @@ function Home() {
         <div className="relative z-10 text-center max-w-4xl px-6">
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="h-px w-12 bg-amber-400/70" />
-            <p className="text-amber-300 tracking-[4px] text-sm font-medium uppercase">THE CLOUD9 PUB</p>
+            <p className="text-amber-300 tracking-[4px] text-sm font-medium uppercase">
+              THE CLOUD9 PUB
+            </p>
             <div className="h-px w-12 bg-amber-400/70" />
           </div>
 
@@ -183,7 +190,7 @@ function Home() {
           </h1>
 
           <p className="text-white/80 text-lg md:text-xl max-w-lg mx-auto">
-            {banners[currentHeroSlide]?.description || 
+            {banners[currentHeroSlide]?.description ||
               "A warm, cozy pub where every pint tells a story."}
           </p>
         </div>
@@ -191,13 +198,19 @@ function Home() {
         {banners.length > 1 && (
           <>
             <button
-              onClick={() => setCurrentHeroSlide((prev) => (prev - 1 + banners.length) % banners.length)}
+              onClick={() =>
+                setCurrentHeroSlide(
+                  (prev) => (prev - 1 + banners.length) % banners.length,
+                )
+              }
               className="absolute left-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-6xl z-20"
             >
               ←
             </button>
             <button
-              onClick={() => setCurrentHeroSlide((prev) => (prev + 1) % banners.length)}
+              onClick={() =>
+                setCurrentHeroSlide((prev) => (prev + 1) % banners.length)
+              }
               className="absolute right-8 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-6xl z-20"
             >
               →
@@ -221,36 +234,54 @@ function Home() {
             <section className="py-16">
               <div className="max-w-7xl mx-auto px-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <p className="text-amber-400 text-sm font-medium tracking-[3px] uppercase">WHAT'S ON TONIGHT</p>
+                  <p className="text-amber-400 text-sm font-medium tracking-[3px] uppercase">
+                    WHAT'S ON TONIGHT
+                  </p>
                   <div className="h-px flex-1 bg-gradient-to-r from-amber-400/30 to-transparent"></div>
                 </div>
 
-                <h2 className="text-4xl font-serif text-white mb-12">Upcoming Events</h2>
+                <h2 className="text-4xl font-serif text-white mb-12">
+                  Upcoming Events
+                </h2>
 
                 {events.length === 0 ? (
                   <div className="bg-[#171410] border border-[#2e2820] rounded-3xl p-16 text-center">
-                    <p className="text-amber-300/70">No events at the moment. Check back soon!</p>
+                    <p className="text-amber-300/70">
+                      No events at the moment. Check back soon!
+                    </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {events.map((event) => (
-                      <div key={event._id} className="group bg-[#1e1a16] border border-[#2e2820] rounded-3xl overflow-hidden hover:border-amber-400/50 transition-all hover:-translate-y-2">
+                      <div
+                        key={event._id}
+                        className="group bg-[#1e1a16] border border-[#2e2820] rounded-3xl overflow-hidden hover:border-amber-400/50 transition-all hover:-translate-y-2"
+                      >
                         <div className="relative h-64 overflow-hidden">
                           {event.image_url ? (
-                            <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <img
+                              src={event.image_url}
+                              alt={event.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            />
                           ) : (
                             <div className="w-full h-full bg-[#171410] flex items-center justify-center">
-                              <span className="text-amber-300/30">Event Image</span>
+                              <span className="text-amber-300/30">
+                                Event Image
+                              </span>
                             </div>
                           )}
                         </div>
                         <div className="p-7">
-                          <h3 className="text-2xl font-serif text-white mb-3">{event.title}</h3>
+                          <h3 className="text-2xl font-serif text-white mb-3">
+                            {event.title}
+                          </h3>
                           <p className="text-[#d4c5ae]/70 text-sm leading-relaxed mb-6 line-clamp-3">
                             {event.description}
                           </p>
                           <div className="text-sm text-amber-300/80">
-                            {event.event_date} • {event.start_time} – {event.end_time}
+                            {event.event_date} • {event.start_time} –{" "}
+                            {event.end_time}
                           </div>
                         </div>
                       </div>
@@ -264,10 +295,14 @@ function Home() {
             <section className="py-16 bg-[#0e0c0a]">
               <div className="max-w-7xl mx-auto px-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <p className="text-amber-400 uppercase text-sm font-medium tracking-[3px]">HIGHLIGHTS</p>
+                  <p className="text-amber-400 uppercase text-sm font-medium tracking-[3px]">
+                    HIGHLIGHTS
+                  </p>
                   <div className="h-px flex-1 bg-gradient-to-r from-amber-400/30 to-transparent"></div>
                 </div>
-                <h2 className="text-4xl font-serif text-white mb-12">Featured Offers</h2>
+                <h2 className="text-4xl font-serif text-white mb-12">
+                  Featured Offers
+                </h2>
 
                 {banners.length > 0 && (
                   <div className="relative h-[520px] rounded-3xl overflow-hidden shadow-2xl">
@@ -276,7 +311,11 @@ function Home() {
                         key={index}
                         className={`absolute inset-0 transition-opacity duration-1000 ${index === currentBannerIndex ? "opacity-100" : "opacity-0"}`}
                       >
-                        <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover" />
+                        <img
+                          src={banner.image_url}
+                          alt={banner.title}
+                          className="w-full h-full object-cover"
+                        />
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-10 md:p-16">
                           <h3 className="text-white text-5xl font-serif font-bold leading-tight">
@@ -305,11 +344,15 @@ function Home() {
             <section className="py-16 bg-[#0e0c0a]">
               <div className="max-w-7xl mx-auto px-6">
                 <div className="flex items-center gap-4 mb-6">
-                  <p className="text-amber-400 text-sm font-medium tracking-[3px] uppercase">MENU</p>
+                  <p className="text-amber-400 text-sm font-medium tracking-[3px] uppercase">
+                    MENU
+                  </p>
                   <div className="h-px flex-1 bg-gradient-to-r from-amber-400/30 to-transparent"></div>
                 </div>
 
-                <h2 className="text-4xl font-serif text-white mb-10">Our Menu</h2>
+                <h2 className="text-4xl font-serif text-white mb-10">
+                  Our Menu
+                </h2>
 
                 <div className="mb-12 max-w-2xl">
                   <SearchBar
@@ -326,10 +369,13 @@ function Home() {
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {filteredMenuItems.map((item) => (
-                      <div key={item._id || item.id} className="product-card-wrapper">
-                        <ProductCard 
-                          product={item} 
-                          onAddToCart={handleAddToCart} 
+                      <div
+                        key={item._id || item.id}
+                        className="product-card-wrapper"
+                      >
+                        <ProductCard
+                          product={item}
+                          onAddToCart={handleAddToCart}
                         />
                       </div>
                     ))}

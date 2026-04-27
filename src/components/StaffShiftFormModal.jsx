@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
 
 const initialForm = {
-  user_id: "",
+  // user_id: "",
+  name: "",
   shift_date: "",
   start_time: "",
   end_time: "",
@@ -10,20 +11,25 @@ const initialForm = {
   status: "",
 };
 
-export default function StaffShiftFormModal({ open, onClose, refresh, editData }) {
+export default function StaffShiftFormModal({
+  open,
+  onClose,
+  refresh,
+  editData,
+}) {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Moved initialForm outside component so it's stable (no re-render issues)
   useEffect(() => {
     if (editData) {
       setForm({
-        user_id:    editData.user_id    || "",
+        user_id: editData.user_id || "",
+        name: editData.name || "",
         shift_date: editData.shift_date || "",
         start_time: editData.start_time || "",
-        end_time:   editData.end_time   || "",
+        end_time: editData.end_time || "",
         shift_role: editData.shift_role || "",
-        status:     editData.status     || "",
+        status: editData.status || "",
       });
     } else {
       setForm(initialForm);
@@ -33,12 +39,18 @@ export default function StaffShiftFormModal({ open, onClose, refresh, editData }
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.user_id || !form.shift_date) {
-      alert("User ID and Date are required!");
+    
+    if (!form.name || form.name.trim() === "") {
+      alert("Staff Name is required!");
       return;
     }
 
-    // ✅ Basic end time after start time check on frontend too
+    if (!form.shift_date) {
+      alert("Shift Date is required!");
+      return;
+    }
+
+    // Optional: Check end time is after start time
     if (form.start_time && form.end_time && form.end_time <= form.start_time) {
       alert("End time must be after start time!");
       return;
@@ -52,20 +64,21 @@ export default function StaffShiftFormModal({ open, onClose, refresh, editData }
           method: "PUT",
           body: JSON.stringify(form),
         });
+        alert("Shift updated successfully!");
       } else {
         await apiFetch("/staff-shifts", {
           method: "POST",
           body: JSON.stringify(form),
         });
+        alert("Shift created successfully!");
       }
 
-      alert(editData ? "Shift updated successfully!" : "Shift created successfully!");
       refresh();
       onClose();
-      setForm(initialForm);
+      setForm(initialForm); // Reset form after success
     } catch (err) {
       console.error(err);
-      alert("Something went wrong!");
+      alert("Something went wrong! Please try again.");
     } finally {
       setLoading(false);
     }
@@ -81,7 +94,10 @@ export default function StaffShiftFormModal({ open, onClose, refresh, editData }
           <h3 className="text-xl font-semibold text-gray-800">
             {editData ? "Edit Shift" : "Create Shift"}
           </h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-lg"
+          >
             ✕
           </button>
         </div>
@@ -89,7 +105,7 @@ export default function StaffShiftFormModal({ open, onClose, refresh, editData }
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* User ID */}
-          <div>
+          {/* <div>
             <label className="block text-sm text-gray-600 mb-1">User ID</label>
             <input
               className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -97,11 +113,25 @@ export default function StaffShiftFormModal({ open, onClose, refresh, editData }
               value={form.user_id}
               onChange={(e) => setForm({ ...form, user_id: e.target.value })}
             />
+          </div> */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">
+              Staff Name
+            </label>
+            <input
+              className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Enter staff full name"
+              value={form.name || ""}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
           </div>
 
           {/* Date */}
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Shift Date</label>
+            <label className="block text-sm text-gray-600 mb-1">
+              Shift Date
+            </label>
             <input
               type="date"
               className="w-full border rounded-lg p-2"
@@ -113,16 +143,22 @@ export default function StaffShiftFormModal({ open, onClose, refresh, editData }
           {/* Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Start Time</label>
+              <label className="block text-sm text-gray-600 mb-1">
+                Start Time
+              </label>
               <input
                 type="time"
                 className="w-full border rounded-lg p-2"
                 value={form.start_time}
-                onChange={(e) => setForm({ ...form, start_time: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, start_time: e.target.value })
+                }
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">End Time</label>
+              <label className="block text-sm text-gray-600 mb-1">
+                End Time
+              </label>
               <input
                 type="time"
                 className="w-full border rounded-lg p-2"
@@ -163,14 +199,14 @@ export default function StaffShiftFormModal({ open, onClose, refresh, editData }
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+              className="px-4 py-2 cursor-pointer rounded-lg bg-gray-200 hover:bg-gray-300"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow disabled:opacity-50"
+              className="px-4 py-2 cursor-pointer rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow disabled:opacity-50"
               disabled={loading}
             >
               {loading ? "Saving..." : "Save Shift"}

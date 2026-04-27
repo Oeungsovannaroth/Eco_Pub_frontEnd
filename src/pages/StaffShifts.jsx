@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
 import StaffShiftFormModal from "../components/StaffShiftFormModal";
+import Loader from "../components/Loader";        // ← Reuse if you have it
 
 const STATUS_STYLES = {
   assigned: "bg-blue-100 text-blue-800",
@@ -10,15 +11,22 @@ const STATUS_STYLES = {
 
 export default function StaffShifts() {
   const [shifts, setShifts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
   const [editData, setEditData] = useState(null);
 
   const fetchShifts = async () => {
     try {
+      setLoading(true);
+      setError("");
       const data = await apiFetch("/staff-shifts");
-      setShifts(data);
+      setShifts(data || []);
     } catch (err) {
-      console.error("Failed to fetch shifts:", err.message);
+      setError(err.message || "Failed to load staff shifts.");
+      console.error("Failed to fetch shifts:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -26,158 +34,167 @@ export default function StaffShifts() {
     fetchShifts();
   }, []);
 
+  const handleAdd = () => {
+    setEditData(null);
+    setOpen(true);
+  };
+
   const handleEdit = (item) => {
     setEditData(item);
     setOpen(true);
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this shift?")) return;
+    const confirmed = window.confirm("Delete this shift?");
+    if (!confirmed) return;
+
     try {
       await apiFetch(`/staff-shifts/${id}`, { method: "DELETE" });
       fetchShifts();
     } catch (err) {
-      console.error("Failed to delete shift:", err.message);
+      alert("Failed to delete shift: " + err.message);
     }
   };
 
+  // Define columns for better structure (similar to Payments)
+  const columns = [
+    { 
+      key: "user_id", 
+      label: "Staff ID",
+      render: (row) => (
+        <span className="text-xs bg-gray-100 px-2 py-1 rounded-md font-mono text-gray-700">
+          {row.user_id || "—"}
+        </span>
+      )
+    },
+    { 
+      key: "name", 
+      label: "Name",
+      render: (row) => <span className="font-medium text-gray-800">{row.name || "—"}</span>
+    },
+    { key: "shift_date", label: "Date" },
+    {
+      key: "time",
+      label: "Time",
+      render: (row) => 
+        row.start_time && row.end_time 
+          ? `${row.start_time} – ${row.end_time}` 
+          : "—"
+    },
+    { key: "shift_role", label: "Role" },
+    {
+      key: "status",
+      label: "Status",
+      render: (row) => (
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
+            STATUS_STYLES[row.status] || "bg-gray-100 text-gray-600"
+          }`}
+        >
+          {row.status || "—"}
+        </span>
+      )
+    },
+  ];
+
   return (
-    <div className="p-8 bg-gray-50 min-h-screen font-sans">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6">   {/* Changed from p-8 to p-6 for consistency */}
+      
+      {/* Header - Same style as Payments */}
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Staff Shifts
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {shifts.length} shift{shifts.length !== 1 ? "s" : ""} total
+          <h1 className="text-3xl font-bold text-gray-800">Staff Shifts</h1>
+          <p className="mt-1 text-gray-500">
+            Manage staff schedules and shift records.
           </p>
         </div>
 
         <button
-          onClick={() => {
-            setEditData(null);
-            setOpen(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+          onClick={handleAdd}
+          className="rounded-lg bg-gray-900 px-4 py-2 cursor-pointer text-sm font-medium text-white hover:bg-black transition"
         >
           + Add Shift
         </button>
       </div>
 
-      {/* Table Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-            <tr>
-              {[
-                "Staff ID",
-                "Name",
-                "Date",
-                "Time",
-                "Role",
-                "Status",
-                "Actions",
-              ].map((h) => (
-                <th
-                  key={h}
-                  className={`px-4 py-3 ${
-                    h === "Actions" ? "text-center" : "text-left"
-                  }`}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
+      {/* Loading & Error Handling - Same as Payments */}
+      {loading && <Loader text="Loading shifts..." />}
 
-          <tbody>
-            {shifts.length > 0 ? (
-              shifts.map((s) => (
-                <tr
-                  key={s.id}
-                  className="border-b last:border-none hover:bg-gray-50 transition"
-                >
-                  {/* Staff ID */}
-                  <td className="px-4 py-3">
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded-md font-mono text-gray-600">
-                      {s.user_id || s.id || "—"}
-                    </span>
-                  </td>
+      {!loading && error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
 
-                  {/* Name */}
-                  <td className="px-4 py-3 font-medium text-gray-800">
-                    {s.user?.name || "—"}
-                  </td>
+      {/* Table Section */}
+      {!loading && !error && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+              <tr>
+                {columns.map((col) => (
+                  <th
+                    key={col.key}
+                    className="px-6 py-4 text-left font-medium"
+                  >
+                    {col.label}
+                  </th>
+                ))}
+                <th className="px-6 py-4 text-center font-medium">Actions</th>
+              </tr>
+            </thead>
 
-                  {/* Date */}
-                  <td className="px-4 py-3 text-gray-500">
-                    {s.shift_date || "—"}
-                  </td>
+            <tbody>
+              {shifts.length > 0 ? (
+                shifts.map((shift) => (
+                  <tr
+                    key={shift.id || shift._id}
+                    className="border-b last:border-none hover:bg-gray-50 transition-colors"
+                  >
+                    {columns.map((col) => (
+                      <td key={col.key} className="px-6 py-4">
+                        {col.render ? col.render(shift) : shift[col.key] || "—"}
+                      </td>
+                    ))}
 
-                  {/* Time */}
-                  <td className="px-4 py-3 text-gray-500">
-                    {s.start_time && s.end_time
-                      ? `${s.start_time} – ${s.end_time}`
-                      : "—"}
-                  </td>
-
-                  {/* Role */}
-                  <td className="px-4 py-3 text-gray-700">
-                    {s.shift_role || "—"}
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-4 py-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${
-                        STATUS_STYLES[s.status] ||
-                        "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {s.status || "—"}
-                    </span>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-4 py-3">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(s)}
-                        className="px-3 py-1 text-xs rounded-md border border-yellow-300 bg-yellow-100 text-yellow-800 hover:bg-yellow-200 transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s.id)}
-                        className="px-3 py-1 text-xs rounded-md border border-red-300 bg-red-100 text-red-700 hover:bg-red-200 transition"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    {/* Actions */}
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handleEdit(shift)}
+                          className="rounded-lg cursor-pointer bg-blue-500 px-3 py-2 text-xs font-medium text-white hover:bg-blue-600 transition"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(shift.id || shift._id)}
+                          className="rounded-lg cursor-pointer bg-red-500 px-3 py-2 text-xs font-medium text-white hover:bg-red-600 transition"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={columns.length + 1} className="text-center py-12 text-gray-400">
+                    No shifts found. Click <span className="font-semibold">+ Add Shift</span> to get started.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="7"
-                  className="text-center py-12 text-gray-400"
-                >
-                  No shifts found. Click{" "}
-                  <span className="font-semibold">+ Add Shift</span> to get
-                  started.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Modal */}
       <StaffShiftFormModal
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          setOpen(false);
+          setEditData(null);
+        }}
         refresh={fetchShifts}
         editData={editData}
       />
