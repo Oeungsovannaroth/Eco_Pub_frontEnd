@@ -10,6 +10,7 @@ import { FaChair } from "react-icons/fa";
 import { FaFantasyFlightGames } from "react-icons/fa";
 import { TbCategory2 } from "react-icons/tb";
 import { FaUserClock } from "react-icons/fa";
+import { FaUsers } from "react-icons/fa";
 const linkBase =
   "flex items-center rounded-lg px-4 py-3 text-sm font-medium transition-all";
 const activeClass = "bg-gray-800 text-white";
@@ -128,6 +129,14 @@ function Sidebar() {
           }
         >
           <FaUserClock className="text-xl mr-1.5" /> Staff Shifts
+        </NavLink>
+        <NavLink
+          to="/dashboard/staff"
+          className={({ isActive }) =>
+            `${linkBase} ${isActive ? activeClass : inactiveClass}`
+          }
+        >
+          <FaUsers className="text-xl mr-1.5" /> User Management
         </NavLink>
       </nav>
 

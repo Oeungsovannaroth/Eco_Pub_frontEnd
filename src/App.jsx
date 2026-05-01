@@ -26,6 +26,9 @@ import OrderSuccess from "./pages/OrderSuccess";
 import MyOrders from "./pages/MyOrders";
 import StaffShifts from "./pages/StaffShifts";
 import CustomerReviews from "./pages/CustomerReviews";
+import StaffCreate from "./pages/StaffCreate";
+import StaffManagement from "./pages/StaffManagement";
+
 function App() {
   return (
     <Routes>
@@ -64,6 +67,8 @@ function App() {
         <Route path="events" element={<Events />} />
         <Route path="led-messages" element={<LedMessages />} />
         <Route path="staff-shifts" element={<StaffShifts />} />
+        <Route path="staff/create" element={<StaffCreate />} />
+        <Route path="staff" element={<StaffManagement />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
