@@ -152,7 +152,7 @@ function Categories() {
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Categories</h1>
           <p className="mt-1 text-gray-500">
-            Retrieve and manage category list from database.
+            Retrieve and manage category.
           </p>
         </div>
 

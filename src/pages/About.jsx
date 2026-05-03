@@ -119,8 +119,8 @@ function About() {
           </div>
 
           <button 
-            onClick={() => window.open('https://maps.google.com', '_blank')}
-            className="mt-12 bg-amber-500 hover:bg-amber-400 text-black font-semibold px-12 py-4 rounded-2xl text-lg transition-all"
+            onClick={() => window.open('https://www.google.com/maps/place/ACLEDA+University+of+Business/@11.6290212,104.8544354,17z/data=!3m1!4b1!4m6!3m5!1s0x3109527b5a6c6599:0x947e61c3ff00c21d!8m2!3d11.6290212!4d104.8570103!16s%2Fg%2F11c5s72vjq?entry=ttu&g_ep=EgoyMDI2MDQyOS4wIKXMDSoASAFQAw%3D%3D', '_blank')}
+            className="mt-12 bg-amber-500 cursor-pointer hover:bg-amber-400 text-black font-semibold px-12 py-4 rounded-2xl text-lg transition-all"
           >
             Get Directions
           </button>
